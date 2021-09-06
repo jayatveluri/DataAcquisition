@@ -1,0 +1,28 @@
+---
+title: "RFromSQL"
+author: "Jaya Veluri"
+date: "9/5/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r movies}
+
+test_conn = odbcConnect("testR")
+sqlQuery(test_conn,"select * from movies")
+sqlQuery(test_conn,"select * from movieratings")
+sqlQuery(test_conn, "select A.Movieid,A.MovieName,A.Year, B.Rating, B.ViewerName,B.ViewerDescription from Movies AS A INNER Join MovieRatings AS B on A.MovieId = B.MovieId order by B.Rating desc")
+```
+
+
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
