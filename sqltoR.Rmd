@@ -21,6 +21,7 @@ test_conn = odbcConnect("testR")
 sqlQuery(test_conn,"select * from movies")
 sqlQuery(test_conn,"select * from movieratings")
 sqlQuery(test_conn, "select A.Movieid,A.MovieName,A.Year, B.Rating, B.ViewerName,B.ViewerDescription from Movies AS A INNER Join MovieRatings AS B on A.MovieId = B.MovieId order by B.Rating desc")
+##How likely is it that all five of your friends have seen all six movies?: the probability is 30.
 ```
 
 
