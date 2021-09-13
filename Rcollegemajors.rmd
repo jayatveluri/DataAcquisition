@@ -1,0 +1,88 @@
+---
+title: "CollegeMajors"
+author: "Jaya Veluri"
+date: "9/12/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+require(dplyr)
+
+ ## 1. For getting Data from collegemajors.csv where the column Major contains Statistics or Data
+setwd("C:/RData")
+MajorsList <- read.csv("collegemajors.csv",header=TRUE)
+subset(MajorsList,(grepl("Data|STATISTICS", Major, ignore.case = TRUE)))
+## 2. For getting Data from collegemajors.csv where the column Major contains Statistics or Data
+#2 Write code that transforms the data below:
+
+##[1] "bell pepper"  "bilberry"     "blackberry"   "blood orange"
+
+##[5] "blueberry"    "cantaloupe"   "chili pepper" "cloudberry"  
+
+##[9] "elderberry"   "lime"         "lychee"       "mulberry"    
+
+##[13] "olive"        "salal berry"
+
+testdata <- '[1] "bell pepper"  "bilberry"     "blackberry"   "blood orange"
+
+[5] "blueberry"    "cantaloupe"   "chili pepper" "cloudberry"  
+
+[9] "elderberry"   "lime"         "lychee"       "mulberry"    
+
+[13] "olive"        "salal berry"'
+
+library(stringr)
+
+testdata_split <-unlist(str_extract_all(testdata, pattern = "\"([a-z]+.[a-z]+)\""))
+
+
+testdata_split
+testdata_final <- str_remove_all(testdata_split, "\"")
+
+
+
+##3 Describe, in words, what these expressions will match:
+
+## "(.)\1\1"
+#This will match any one character followed by two repetitions, like "ccc" or "666".
+## "(.)(.)\\2\\1"
+#This will search for two characters repeated, except in reverse like "cddc" or "2552".
+## "(..)\1"
+#This will search for two characters, repeated once, like “dada” or “6767”
+"(.).\\1.\\1"
+#This will search for a five character term, three of which are the same, like “71727”.
+## "(.)(.)(.).*\\3\\2\\1"
+# This will construct a set of characters that begin and end with the same three characters, except the second instance is reversed, like  “6547113456”.
+
+##4 Construct regular expressions to match words that:
+
+##Start and end with the same character.
+# __"(.).*\1"__
+##Contain a repeated pair of letters (e.g. "church" contains "ch" repeated twice.)
+# __".([A-Za-z][A-Za-z]).\1.*"__
+##Contain one letter repeated in at least three places (e.g. "eleven" contains three "e"s.)
+#  “.([A-Za-z]).\1.\1.”
+
+
+
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
