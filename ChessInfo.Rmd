@@ -1,0 +1,72 @@
+---
+title: "Project1"
+author: "Jaya Veluri"
+date: "9/18/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks 
+the document. You can embed an R code chunk like this:
+
+```{r chessinfo}
+library(stringr)
+library(stringi)
+# reading the tournament text file form local directory
+chesstrdf <-  read.csv(paste0("C:/Rdata/tournamentinfo.txt"), header=F)
+chesstrdf<-chesstrdf[-c(1:4),]
+chesstrdf
+
+
+#Get Player Info and Rating Info
+playerInfo <- chesstrdf[seq(1, length(chesstrdf), 3)]
+ratingInfo <- chesstrdf[seq(2, length(chesstrdf), 3)]
+playerInfo
+ratingInfo
+
+#pull ID(plyer's ID)
+ID<-str_extract(playerInfo,"\\d{1,2} \\| ")
+
+#pull pair no
+pairNo <- as.integer(str_extract(playerInfo, "\\d+"))
+pairNo
+#pull names
+Name <- str_trim(str_extract(playerInfo, "(\\w+\\s){2,3}"))
+Name
+
+#pull Region
+Region <- str_extract(ratingInfo, "\\w+")
+Region
+#pull points
+pts<- as.numeric(str_extract(playerInfo, "\\d+\\.\\d+"))
+pts
+#prerating
+preRating <- as.integer(str_extract(str_extract(ratingInfo, "[^\\d]\\d{3,4}[^\\d]"), "\\d+"))
+preRating
+#opponents
+Opponents <- str_extract_all(str_extract_all(playerInfo, "\\d+\\|"), "\\d+")
+Opponents
+#calculating mean for the opponents
+meanRating <- length(playerInfo)
+for (i in 1:length(playerInfo)) { 
+  meanRating[i] <- round(mean(preRating[as.numeric(unlist(Opponents[pairNo[i]]))]), digits = 0) 
+}
+#visualizing the data with column names
+calcData <- data.frame(Name, Region, pts, preRating, meanRating);
+calcData
+colnames(calcData) <- c("Player's Name", "Player's State", "Total Number Of Points", "Player's Pre-Rating", "Average Pre Chess Rating of Opponents")
+calcData
+#writing the calulated chess data toa .csv file
+write.csv(calcData, file = "C:/Rdata/chessTournament.csv")
+
+
+
+```
+
