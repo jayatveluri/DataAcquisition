@@ -1,0 +1,96 @@
+---
+title: "Israeli Vaccination"
+author: "Jaya Veluri"
+date: "9/26/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r vaccination}
+library(tidyr)
+library(dplyr)
+library(stringr)
+library(stringi)
+vacctrdf <-  read.csv(paste0("C:/Rdata/israeli_vaccination_data_analysis_startnew.csv"), header=F)
+vacctrdf<-vacctrdf[-c(1:2),]
+svacctrdf1lessthan50<-(vacctrdf[1:1])
+svacctrdf1lessthan50
+svacctrdf2lessthan50 <- (vacctrdf[2:2])
+svacctrdf2lessthan50
+svacctrdf1greaterthan50<-(vacctrdf[3:3])
+svacctrdf1greaterthan50
+svacctrdf2greaterthan50<-(vacctrdf[4:4])
+svacctrdf2greaterthan50
+firstInfolessthan50 <- svacctrdf1lessthan50[seq(1, length(svacctrdf1lessthan50), 3)]
+firstInfolessthan50
+secondinfolessthan50 <- svacctrdf2lessthan50[seq(1, length(svacctrdf2lessthan50), 3)]
+secondinfolessthan50
+firstInfogreaterthan50 <- svacctrdf1greaterthan50[seq(1, length(svacctrdf1greaterthan50), 3)]
+firstInfogreaterthan50
+secondinfogreaterthan50 <- svacctrdf2greaterthan50[seq(1, length(svacctrdf2greaterthan50), 3)]
+secondinfogreaterthan50
+firstvalue_splitlessthan50<-str_split_fixed(firstInfolessthan50, "\\|",6)
+secondvalue_splitlessthan50<-str_split_fixed(secondinfolessthan50, "\\|",4)
+firstvalue_splitlessthan50
+secondvalue_splitlessthan50
+firstvalue_splitgreaterthan50<-str_split_fixed(firstInfogreaterthan50, "\\|",6)
+secondvalue_splitgreaterthan50<-str_split_fixed(secondinfogreaterthan50, "\\|",4)
+firstvalue_splitlessthan50[2]
+firstvalue_splitlessthan50[3]
+firstvalue_splitlessthan50[4]
+firstvalue_splitlessthan50[5]
+secondvalue_splitlessthan50[2]
+secondvalue_splitlessthan50[3]
+firstvalue_splitgreaterthan50[2]
+firstvalue_splitgreaterthan50[3]
+firstvalue_splitgreaterthan50[4]
+firstvalue_splitgreaterthan50[5]
+secondvalue_splitgreaterthan50[2]
+secondvalue_splitgreaterthan50[3]
+totalpopulationlessthan50<- as.integer(firstvalue_splitlessthan50[2]) + as.integer(firstvalue_splitlessthan50[3])
+totalpopulationlessthan50
+totalpopulationgreaterthan50 <- as.integer(firstvalue_splitgreaterthan50[2]) + as.integer(firstvalue_splitgreaterthan50[3])
+totalpopulationgreaterthan50
+totalpopulation <- as.integer(totalpopulationlessthan50) + as.integer(totalpopulationgreaterthan50)
+totalpopulation
+totalfullyvaxedseverecases <- as.integer(firstvalue_splitlessthan50[5]) + as.integer(firstvalue_splitgreaterthan50[5])
+totalfullyvaxedseverecases
+totalfullynonvaxedseverecases <- as.integer(firstvalue_splitlessthan50[4]) + as.integer(firstvalue_splitgreaterthan50[4])
+totalfullynonvaxedseverecases
+totalseverecases <- as.integer(totalfullyvaxedseverecases) + as.integer(totalfullynonvaxedseverecases)
+totalseverecases
+percentfullyvaxedseverecasesper100k <- (as.integer(totalfullyvaxedseverecases)/as.integer(totalseverecases)) * 100
+percentfullyvaxedseverecasesper100k
+percentnotvaxedseverecasesper100k <- (as.integer(totalfullynonvaxedseverecases)/ as.integer(totalseverecases)) * 100
+percentnotvaxedseverecasesper100k
+Efficacyvsseveredisease <- 1 - (percentfullyvaxedseverecasesper100k /percentnotvaxedseverecasesper100k)
+Efficacyvsseveredisease
+
+##Question1 : (1) Do you have enough information to calculate the total population?  What does this total population represent?					
+## Answer   : Yes, total population represent both (population Not Vax) +  (population Vax) for age < 50 and age > 50 which is 6937546.
+##Question2: (2) Calculate the Efficacy vs. Disease; Explain your results.
+## Answer: Efficacy vs. Disease is -0.4065421, the results are: the severe cases for not vaccinated are 795 more than fully vaccinated for age less than 50 and fully vaccinated cases are more by 62 percent than non vaccinated in age greater than 50.
+##Question 3: the results are: the severe cases for not vaccinated are 795 more than fully vaccinated for age less than 50 and fully vaccinated cases are more by 62 percent than non vaccinated in age greater than 50.
+
+
+
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
