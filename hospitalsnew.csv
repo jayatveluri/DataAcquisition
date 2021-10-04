@@ -1,0 +1,13 @@
+IcdChapter,Field,FY1993,FY1994,FY1995,FY1996,FY1997,FY1998
+0. Not Reported,PatientDays,257965,55582,128507,182226,61599,685879
+0. Not Reported,Separations,37178,6146,3832,4861,1558,53575
+1. Infectious and Parasitic Diseases,PatientDays,311221,313386,324693,311560,306688,1567548
+1. Infectious and Parasitic Diseases,Separations,75857,78323,84631,80864,79148,398823
+2. Neoplasms,PatientDays,1686919,1707437,1795751,1770559,1777452,8738118
+2. Neoplasms,Separations,301928,336447,348905,360578,378070,1725928
+3. Endocrine Nutritional and Metabolic Diseases and Immunity Disorders,PatientDays,328354,326877,349671,351119,354723,1710744
+3. Endocrine Nutritional and Metabolic Diseases and Immunity Disorders,Separations,50365,54292,60655,65483,68605,299400
+4. Diseases of the Blood and Blood?Forming Organs,PatientDays,142332,147120,156280,163412,166802,775946
+4. Diseases of the Blood and Blood?Forming Organs,Separations,46969,50769,56758,62771,67672,284939
+5. Mental Disorders,PatientDays,1577877,1504333,2592320,2985958,3188096,11848584
+5. Mental Disorders,Separations,134763,137649,191183,204431,234956,902982

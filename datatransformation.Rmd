@@ -1,0 +1,106 @@
+---
+title: "Datatransformation"
+author: "Jaya Veluri"
+date: "10/3/2021"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+library(tidyr)
+library(dplyr)
+library(tidyverse)
+library(stringr)
+library(stringi)
+```
+
+##Dataset1 for GDP Growth in states starting with A,B,C. 
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r GDP, echo=FALSE}
+library(tidyr)
+library(tidyverse)
+library(dplyr)
+library(stringr)
+library(stringi)
+library(ggplot2) 
+
+##Dataset1 hospitals data
+hospdata <- (read.csv("C:/Rdata/hospitalsnew.csv"))
+hospdata
+head(hospdata)
+## he daa is wide so we ae making it into long
+hospdataprogress<-gather(hospdata,year,value,FY1993:FY1998)
+head(hospdataprogress)
+## pull  the values into their own coluumns
+transformed <- spread(hospdataprogress,Field,value)
+transformed
+## we can use in one line 
+hospdata %>%
+  gather(year,value,FY1993:FY1998) %>%
+  spread(Field,value)
+
+##Dataset2 RGDP data
+
+
+rgdp <-(read.csv("C:/Rdata/realgdpnew.csv", header = TRUE, sep='|'))
+rgdp
+rgdp<-rgdp
+rgdp
+rgdp<-rgdp[-c(1:2),]
+rgdp
+colnames(rgdp)[6] <- "2012"
+colnames(rgdp)[7] <-"2013"
+colnames(rgdp)[8] <- "2014"
+colnames(rgdp)[9] <-"2015"
+rgdp
+
+
+
+## data is wide if we want we can change to long
+rgdp <- gather(rgdp, "Year", "RGDP in dollars", c("2012","2013","2014","2015"))
+rgdp
+## sort by line code and year
+arrange(rgdp,LineCode,Year)
+
+ggplot(rgdp, aes(x = LineCode, y=Year, fill = LineCode))+
+         geom_bar(stat="identity",position="dodge") + 
+         xlab("LineCode") + ylab("Year")
+
+
+library(tidyr)
+library(dplyr)
+library(stringr)
+library(stringi)
+library(tidyverse)
+
+#Third data set Atheletes dataset
+Atheletesdata <-(read.csv("C:/Rdata/Athletes.csv", header = TRUE, sep='|'))
+Atheletesdata
+## Number of players representing  each country
+Atheletesdata%>% distinct(Name,NOC) %>% 
+       count(NOC)
+## Number of Players by Discipline from each country
+Atheletesdata %>% select(Name,NOC,Discipline) %>% group_by(Discipline,NOC) %>% summarize(count =n())
+
+
+
+  
+
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
