@@ -11,19 +11,25 @@
         },
         {
             "title": "While Justice Sleeps",
-            "author": "Stacey Abrams",
+            "author": [ 
+                "Stacey Abrams"
+            ],
             "genre": "Fiction",
             "published": "05/11/2021"
         },
         {
             "title": "To Kill a Mocking Bird",
-            "author": "Wiley",
+            "author": [
+                  "Wiley"
+             ],
             "genre": "Fiction",
             "published": "07/11/1960"
         },
         {
             "title": "The Great Gatsby",
-            "author": "F.Scott Fitzgerald",
+            "author": [
+                      "F.Scott Fitzgerald"
+             ],
             "genre": "Fiction",
             "published": "04/10/1925"
         }
