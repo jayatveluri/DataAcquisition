@@ -1,0 +1,65 @@
+---
+title: "RJson"
+author: "Jaya Veluri"
+date: "10/9/2021"
+output: html_document
+---
+
+```{r setup}
+knitr::opts_chunk$set(echo = TRUE)
+library(httr)
+library(XML)
+library(jsonlite)
+library(rjson)
+
+
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+## Load HTML INTO R
+
+
+```{r Books}
+
+
+htmldf <- "https://raw.githubusercontent.com/jayatveluri/DataAcquisition/main/books.html"
+htmldf <- GET(htmldf)
+htmldf <- rawToChar(htmldf$content)
+htmldf <- htmlParse(htmldf)
+htmldf <- readHTMLTable(htmldf)
+HTML <- data.frame(htmldf)
+HTML
+
+
+```
+
+## Load XML INTO R
+
+
+
+```{r Booksxxml}
+xml <- "https://raw.githubusercontent.com/jayatveluri/DataAcquisition/main/books.xml"
+xml <- GET(xml)
+xml <- rawToChar(xml$content)
+xml <- xmlParse(xml)
+xml <- xmlToList(xml)
+XML <- data.frame(xml)
+XML
+
+
+```
+## LOAD JSON into R
+```{r BooksJSON}
+jsonData <- rjson::fromJSON(file="https://raw.githubusercontent.com/jayatveluri/DataAcquisition/main/books.json")
+str(jsonData)
+
+```
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+## Are three data frames identical?
+
+Yes they are identical
