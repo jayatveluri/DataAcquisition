@@ -1,0 +1,92 @@
+---
+title: "Untitled"
+author: "Jaya Veluri"
+date: "10/24/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+library(tidyverse)
+library(dplyr)
+library(forcats)
+library(patchwork)
+
+Atheletesdf <-  read.csv(paste0("https://raw.githubusercontent.com/jayatveluri/DataAcquisition/main/EntriesGender.csv"), header=TRUE, sep="|" )
+Atheletesdf
+
+#creating new columns
+newAtheletesdf <-Atheletesdf%>% 
+select(Discipline,Female,Male,Total)%>%  
+mutate(female_percent = Female*100/Total, male_percent = Male*100/Total)
+newAtheletesdf
+## Group By
+newAtheletesdf%>% 
+group_by(Discipline) 
+
+##Plotting and displaying plots next to each other using patch
+p1 <- newAtheletesdf%>% 
+  ggplot(aes(x = Discipline, y = female_percent)) + 
+    geom_col(fill = "lightblue") + 
+    labs(x = "Discipline", y = "female_percent", 
+           caption = "https://en.wikipedia.org/wiki/Atheletesfemale_percent") 
+p2 <- newAtheletesdf%>% 
+  ggplot(aes(x = Discipline, y = male_percent,male_percent)) + 
+    geom_col(fill = "lightblue") + 
+    labs(x = "Discipline", y = "female_percent,male_percent,", 
+           caption = "https://en.wikipedia.org/wiki/Atheletesfemale_male_percent") 
+p1 + p2
+
+## flipping coordinates
+p3 <- newAtheletesdf%>% 
+  ggplot(aes(x = Discipline, y = female_percent)) + 
+    geom_col(fill = "lightblue") + 
+    labs(x = "Discipline", y = "female_percent", 
+           caption = "https://en.wikipedia.org/wiki/Atheletesfemale_percent") + coord_flip()
+p4 <- newAtheletesdf%>% 
+  ggplot(aes(x = Discipline, y = male_percent,male_percent)) + 
+    geom_col(fill = "lightblue") + 
+    labs(x = "Discipline", y = "female_percent,male_percent,", 
+           caption = "https://en.wikipedia.org/wiki/Atheletesfemale_male_percent") + coord_flip()
+p3 + p4
+
+# ordered by Discipline
+
+
+newAtheletesdf%>% 
+  ggplot(aes(x = fct_reorder(Discipline,female_percent), y = female_percent)) + 
+    geom_col(fill = "lightblue") + 
+    labs(x = "Discipline", y = "female_percent", 
+           caption = "https://en.wikipedia.org/wiki/Atheletesfemale_percent") + coord_flip()
+  
+```
+
+
+
+
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+ 
+
+
+
+
+
+
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
