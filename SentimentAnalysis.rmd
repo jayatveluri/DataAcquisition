@@ -31,6 +31,14 @@ library(reshape2)
 
 ##Re-create and analyze primary code from the textbook,“Sentiment analysis with tidy data” by Silge, Julia and Robinson, David. 
 
+
+##Work Flow:
+## studied Jane Austen library using the get_sentiment and austen_books() functions to understand how the Jane Austen corpus of books reflect negative and positive emotions.
+
+##Exended the study of Sentiment Analysis to the based on the book "Narrative of the Life of Frederick Douglass,an American Slave" by author Frederick Douglass
+
+## I use a new lexicon library "Loughran" for Sentiment Analysis on the book "Narrative of the Life of Frederick Douglass,an American Slave".
+
 ## Reference https://www.tidytextmining.com/sentiment.html
 
 get_sentiments("afinn")
@@ -173,9 +181,10 @@ tidy_books %>%
 ## Analysis
 ##Sentiment analysis provides a way to understand the attitudes and opinions expressed in texts. In this chapter, we explored how to approach sentiment analysis using tidy data principles; when text data is in a tidy data structure, sentiment analysis can be implemented as an inner join
 
- ##Extend analysis to new corpus and new lexicon
-## We introduce a corpus based on the book Narrative of the Life of Frederick Douglass,an American Slave by author Frederick Douglass##Reference:
+##Extend analysis to new corpus and new lexicon "Loughran"
+## We introduce a corpus based on the book Narrative of the Life of Frederick Douglass,an American Slave by author Frederick Douglass
 
+##Reference:
 ##https://docsouth.unc.edu/neh/douglass/douglass.html
 
 #install library 
@@ -310,8 +319,8 @@ book_words %>%
   coord_flip()
 
 
-##Analysis: 
-## In this assignment, we added a new corpus from ‘gutenbergr’ package and applied sentiment analysis. From the analysis, we came to know mostly used positive/negative words and chapter wise sentiment analysis.Chapter 8 and 9 has more negative words and Chapter 3 and 4 has more positive words.
+##Conclusion: 
+## In this assignment, we added a new corpus from ‘gutenbergr’ package and applied sentiment analysis. From the analysis, we came to know mostly used positive/negative words and chapter wise sentiment analysis.Chapter 8 and 9 has more negative words and Chapter 3 and 4 has more positive words. I like "Bing" lexicon because it gives most negative and positive words and also i like the statistic "tf-idf" to measure how important a word is to a document in a collection
 
 
 
