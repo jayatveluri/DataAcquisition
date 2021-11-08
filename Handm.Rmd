@@ -1,0 +1,102 @@
+---
+title: "Untitled"
+author: "Jaya Veluri"
+date: "11/7/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+<html>
+
+<head>
+<title>Recommender System: H&amp;M</title>
+</head>
+
+<body>
+
+<div id="hm" class="section level1">
+<h1 align = "center">H&M Recommender System</h1>
+<p><a href="https://www2.hm.com/en_us/index.html" target="_blank">H&amp;M</a> is an international fashion brand with an on line presence. Potential shoppers who visit the site and click on any item will be offered 4 recommendations to “Style With 4” the potential purchase as well as for recommended items “Others Also Bought.”</p>
+</div>
+<div id="scenario-analysis" class="section level1">
+<h1 align = "center">Scenario Analysis</h1>
+<div id="target-users" class="section level2">
+<h2>Target Users</h2>
+<p>Target Users are potential H&amp;M shoppers, especially those who can be persuaded to purchase additional items! The shopper’s goals could include:</p>
+<ol style="list-style-type: decimal">
+<li><p>To spend conservatively</p></li>
+<li><p>To avoid returns</p></li>
+<li><p>To appear fashionable, possibly by purchasing a complete outfit all at once</p></li>
+<li><p>To find new clothes and accessories in their style</p></li>
+<li><p>To find new clothes in their size and according to Region, ocassion and weather.</p></li>
+</ol>
+</div>
+<div id="accomplishing-goals" class="section level2">
+<h2>Accomplishing Goals</h2>
+<p>The system is designed to meet the above goals as follows:</p>
+<ol style="list-style-type: decimal">
+<li><p>It’s not! The want you to buy more. This is a case where the user’s goals and the seller’s goals are not aligned.</p></li>
+<li><p>On this point, H&amp;M and the shopper are aligned. Returns are bad for business! Here, the system could incorporate data on returns when making recommendations, although this is hard to tell as a site visitor.</p></li>
+<li><p>People visit H&amp;M to to buy “fast-fashion”, e.g. clothes and accessories that are on trend. The site recommends related items that can pair with the item viewed to complete a look, e.g. pants viewed may be paired with a top, earrings, shoes, and a bag.</p></li>
+<li><p>The “Others Also Bought” recommended items help shoppers find things in their style and size by recommending similar cuts or themes for the type of item shown, e.g. pants will be shown with other, similar pants and earrings with other earrings. This allows the shopper to choose the best match among similar items.</p></li>
+<li><p>Not a lot! This is where I see the most room for improvement.</p></li>
+</ol>
+</div>
+</div>
+<div id="reverse-engineering-the-system" class="section level1">
+<h1 align = "center">Reverse Engineering the System</h1>
+<p>The system consists of two parts: “Style With 4” and “Others Also Bought,” which appear to operate under different principles.</p>
+<div id="style-with-4" class="section level2">
+<h2>Style With 4</h2>
+<div id="rule-1-match-catalog-photos" class="section level3">
+<h3>Rule #1: Match Catalog Photos</h3>
+<p>The “Style With 4” items are often those that are shown on the model–these are likly chosen by a human as part of the catalog shoot and then coded in the system as items to be paired. Clicking on a pair of pants shown with shoes and a shirt will suggest the shoes and the shirt shown–with one twist.</p>
+</div>
+<div id="rule-2-only-show-in-stock-items" class="section level3">
+<h3>Rule #2: Only Show In-Stock Items</h3>
+<p>Out of stock items will not be shown. Therefore, a ranked preference system must exist where if the originally chose items are not available, a second level of items is shown. On the H&amp;M site, these appear to skew towards generic or basic items that do not necessarily have to match the chosen item, e.g. bras, tank tops, and stockings–a human stylist not required!</p>
+</div>
+<div id="rule-3-match-previous-categories" class="section level3">
+<h3>Rule #3: Match previous categories</h3>
+<p>Finally, a shopper who clicks on maternity wear will not initially be directed to additional materntiy choices, even when viewing a non-maternity item, e.g. shoes. The reverse is also true–shoppers who start out in standard Women’s clothes will not be shown items in maternity. Some items, e.g. shoes and earrings, can be both and will be shown to both sets of shoppers.</p>
+</div>
+</div>
+<div id="others-also-bought" class="section level2">
+<h2>Others Also Bought</h2>
+<div id="rule-1-match-item-type-first" class="section level3">
+<h3>Rule #1: Match item type first</h3>
+<p>Dresses will be shown with dresses, shoes with shoes, etc. Presumably, some who bough shoes also bought shirts, so there must be a business reason why this matching is preferred. While these may shown on the next page of recommendations, there is a clear preference in the system to match by type, first.</p>
+</div>
+<div id="rule-2-match-style-as-much-as-possible" class="section level3">
+<h3>Rule #2: Match style as much as possible</h3>
+<p>If the exact style exists, typically the same item in different colors or prints will be shown, although not more than twice even if more than 3 variations exist. Otherwise, similar styles will be shown. Turtlenecks with other turtlenecks, for example, although–again–surely many customers are buying a variety of styles, so this must be a business preference with underlying items coded with some sort of “style” field.</p>
+</div>
+</div>
+</div>
+<div id="recommendations-to-improve-the-system" class="section level1">
+<h1>Below are some of the Recommendations to Improve the System</h1>
+<div id="recommendations1-as-much-as-possible" class="section level3">
+<h3>Data insights help avoid bad product cycles:</h3>
+<p>In order to succeed, fast-fashion retailers such as H&M need to predict what the market wants to avoid a bad product cycle and the reality of discounting inventory, even more, to move it out. Since the price points are already incredibly low for fast-fashion retailers, it's tough to recover from bad purchase decisions ant to move unwanted inventory.   The stakes are high for fast-fashion retailers and the insights provided by data can help build a more flexible and faster supply chain, facilitate trend detection, manage inventory and set prices.</p>
+<h3>Data insights help avoid bad product cycles:</h3>
+<p>Previously, you could walk into any H&M store whether it was located in Sweden, the United Kingdom or the United States and it would carry very similar merchandise. Unfortunately, the retailer was continually faced with needing to cut prices to clear out unsold inventory in its 4,288 stores around the world. In an effort to better stock individual stores with merchandise local clientele desires, H&M should use big data and Artificial Intelligence (AI) to analyze returns, receipts and loyalty card data to tailor the merchandise for each store. This is known as localization and can be trickier to execute for a global chain such as H&M that typically can leverage economies of scale with its global network of suppliers.</p>
+<h3>Customized fashion</h3>
+<p>The recommmender could do more to meet the shoppers demand to find clothes only in a certain size. For example, if a user selects an item in a certain size, it could filter out recommended items that are sold out in that size.</p> 
+<p>In Metropolitan areas they can carry more merchandise on outerwear(winter), casual wear and office outfit, but in coastal and beach areas they can carry swim suits beach wear etc.</p>
+</div>
+
+
+
+</div>
+</div>
+
+</div>
+
+
+
+</body>
+</html>
+
+
