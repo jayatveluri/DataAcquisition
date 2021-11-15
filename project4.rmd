@@ -1,0 +1,204 @@
+---
+title: "Project4"
+author: "Jaya Veluri"
+date: "11/14/2021"
+output: html_document
+---
+## Loading Libraries
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(tm)
+library(magrittr)
+library(data.table)
+library(e1071)
+library(caret)
+library(R.utils)
+library(RTextTools)
+library(MIAmaxent)
+
+
+
+
+
+```
+## Function to download the desired files
+
+```{r}
+url.spam <- "http://spamassassin.apache.org/old/publiccorpus/20050311_spam_2.tar.bz2"
+file.spam <- "20050311_spam_2.tar.bz2"
+file.spam2<-"20050311_spam_2.tar"
+
+url.ham <- "http://spamassassin.apache.org/old/publiccorpus/20030228_easy_ham.tar.bz2"
+file.ham <- "20030228_easy_ham.tar.bz2"
+file.ham2 <- "20030228_easy_ham.tar"
+
+```
+## Downloading Datasets
+```{r}
+  download.file(url.spam, destfile= file.spam)
+  download.file(url.ham, destfile=file.ham)
+  bunzip2(file.spam)
+  bunzip2(file.ham)
+  untar(file.ham2, exdir="C:\\Rdata\\")
+  untar(file.spam2, exdir = "C:\\Rdata\\")
+```
+## Getting file names
+   Adding files to list
+```{r}
+spam.dir="C:\\Rdata\\spam_2\\"
+ham.dir="C:\\Rdata\\easy_ham\\"
+spam.docs=list.files(spam.dir)
+ham.docs=list.files(ham.dir)
+
+```
+
+## Removing not needed files and writing functions for Corpus Creation, cleaning, and tagging
+
+```{r}
+
+spam.docs = spam.docs[which(spam.docs!="cmds")]
+ham.docs=ham.docs[which(ham.docs!="cmds")]
+
+
+toVCorpus <- function(file_path) {
+  corpus <- file_path %>%                            
+    paste(., list.files(.), sep = "/") %>%          # Create a vector of file paths 
+    lapply(readLines) %>%                           # Read the text in each file
+    VectorSource() %>%                              # Turn into VectorSource
+    VCorpus()                                       # Turn into VCorpus
+  return(corpus)
+}
+
+docClean <- function(corpus) {
+    corpus <- corpus %>%
+    tm_map(removeNumbers) %>%                       # Remove numbers
+    tm_map(removePunctuation) %>%                   # Remove punctuation symbols 
+    tm_map(tolower) %>%                             # Transform  to lowercase
+    tm_map(PlainTextDocument) %>%                   # Transform back to PlainTextDocument
+    tm_map(removeWords, stopwords("en")) %>%        # Remove stopwords
+    tm_map(stripWhitespace) %>%                     # Remove white spaces
+    tm_map(stemDocument)                            #Reduce to stems
+  return(corpus)
+}
+
+addTag <- function(corpus, tag, value){
+  for (i in 1:length(corpus)){
+    meta(corpus[[i]], tag) <- value                    # Add the value to the specified tag
+  }
+  return(corpus)
+}
+
+```
+## Create spam and ham corpus
+```{r}
+# Create ham corpus
+ham_corpus <- ham.dir%>%
+   toVCorpus %>% 
+   docClean  %>% 
+   addTag(tag = "ham_spam", value = "ham")
+
+
+
+# Create spam corpus
+spam_corpus <- spam.dir %>%
+  toVCorpus %>%
+  docClean %>%
+  addTag(tag = "ham_spam", value = "spam")
+
+```
+## Joining the two “Tidy” corpuses together and mixing them
+```{r}
+spamassassin_corpus <- c(ham_corpus, spam_corpus)
+# Scramble the order
+spamassassin_corpus <- spamassassin_corpus[sample(c(1:length(spamassassin_corpus)))]
+
+```
+## Check the Corpus
+```{r}
+# Check ham/spam proportion
+spamassassin_corpus_prop <- spamassassin_corpus %>%
+  meta(tag = "ham_spam") %>%
+  unlist() %>%
+  table() 
+spamassassin_corpus_prop
+###Corpus and physical files match
+
+
+```
+
+
+## Wordcloud as an output
+```{r}
+library(wordcloud)
+wordcloud(spamassassin_corpus,max.words = 70, random.order = FALSE, min.freq=1000)#header  wordcloud
+```
+## Training
+create the document term matrix and remove sparse terms. Terms appearing in less than 10 documents will be left out. 
+```{r}
+spamassassin_dtm <- spamassassin_corpus %>% 
+                    DocumentTermMatrix() %>% 
+                    removeSparseTerms(1-(10/length(spamassassin_corpus)))
+
+spamassassin_labels <- unlist(meta(spamassassin_corpus, "ham_spam"))
+
+```
+## To use the train_model function, I had to create a container, did a 80/20 split in the dataset. About 80% of the data were used for training, and the remaining 20% were used for testing.
+
+```{r}
+N <- length(spamassassin_labels)
+split <- round(0.8*N) 
+container <- create_container(
+  spamassassin_dtm, 
+  labels = spamassassin_labels, 
+  trainSize = 1:split,
+  testSize = (split+1):N,
+  virgin = F
+)
+
+```
+## Begin Training
+Using three different algorithms
+-Suvervisor Vector Machines -Decision Tree 
+```{r}
+svm_model_spamassassin <- train_model(container, "SVM")
+tree_model_spamassassin <- train_model(container, "TREE")
+
+```
+## Testing and results
+```{r}
+# Classifying using the trained models
+svm_out_spamassassin <- classify_model(container, svm_model_spamassassin)
+tree_out_spamassassin <- classify_model(container, tree_model_spamassassin)
+
+
+
+# Collect the classification results into a table
+labels_out_spamassassin <- data.frame(
+  correct_label = spamassassin_labels[(split+1):N],
+  svm = as.character(svm_out_spamassassin[,1]),
+  tree = as.character(tree_out_spamassassin[,1]))
+
+
+# Print results
+for (i in 2:3){
+  print(names(labels_out_spamassassin)[i])
+  table(labels_out_spamassassin[,1] == labels_out_spamassassin[,i]) %>% 
+    print() %>% 
+    prop.table() %>% 
+    round(2) %>% 
+    print()
+}
+
+```
+
+```{r}
+library(knitr)
+final<-summary(labels_out_spamassassin)
+kable(final)
+
+```
+## Conclusion			
+The tree classfication algorithm performed less accurate that the other one. The svm classifier were 99% accurate.
+
+
