@@ -1,0 +1,350 @@
+---
+title: "Final Project Sentiment Analysis Data 607"
+author: "Jaya Veluri"
+date: "12/5/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library("twitteR")
+library("wordcloud")
+library("tm")
+library("ggplot2")
+library("dplyr")
+library("rtweet")
+library("tidytext")
+library("sentimentr")
+library("igraph")
+
+
+##USIN OAuth2.0
+
+
+## store api keys (these are fake example values; replace with your own keys)
+api_key <- "ooCdhLn2jOpheUqQPGkh7WjUL"
+api_secret_key <- "nFfBrb8vUPFxwE9NgewpdXaHhLiw4ce8BTfWyXJpNUryGWBSyb"
+access_token <- "2956631254-5s86XKUML63T8FhFnczUFbAPYSmpSbg0v4CoYkO"
+access_token_secret <- "W7h8PJo1JGEw6VUHakRjR9v69kb4d2yUcrm6InblHOY0l"
+
+token <- create_token(
+  app = "Stocksandtweetssentimment",
+  consumer_key = api_key,
+  consumer_secret = api_secret_key,
+  access_token = access_token,
+  access_secret = access_token_secret)
+setup_twitter_oauth(api_key, api_secret_key, access_token, access_token_secret)
+
+```
+## Tweets List From Tesla and Amazon
+```{r}
+
+tweet_list_TL <- searchTwitter("@AskTesla OR @TeslaInc OR @elonmusk OR @Tesla OR @TSLA OR @TSLAStock OR #TSLA OR #Tesla OR #TeslaInc" , n = 1000 , lang  = "en", since = "2021-09-01")
+tweet_list_AMZN <- searchTwitter("@AmazonStock OR @AMZN OR @jeffBezos OR @Amazon OR @AMZNStock OR @Bezos OR #AMZN OR AMZN" , n = 1000 , lang  = "en", since = "2021-09-01")
+
+
+#tweet_list
+# tweet_list_Amazon
+```
+### The returned tweets are initially stored in a list. For this project need them in a data frame and in text format.
+```{r}
+#Convert list to dataframe
+tweetstl.df <- twListToDF(tweet_list_TL)
+tweetsamzn.df <- twListToDF(tweet_list_AMZN)
+#removing duplicate tweets (retweets) from dataframe
+tweetstl.nodups.df <- distinct(tweetstl.df, text, .keep_all = TRUE)
+tweetsamzn.nodups.df <- distinct(tweetsamzn.df, text, .keep_all = TRUE)
+#clean up dataframe a bit TL
+tweetstl.nodups.df$text <- gsub('…', '', tweetstl.nodups.df$text) #remove ... at end of tweets
+tweetstl.nodups.df <- plyr::rename(tweetstl.nodups.df, c("created" = "Date")) #rename created to Date 
+tweetstl.nodups.df$Date <- as.Date(tweetstl.nodups.df$Date) #convert from datetime to date format
+tweetstl.nodups.df
+
+#clean up dataframe a bit AMZN
+tweetsamzn.nodups.df$text <- gsub('…', '', tweetsamzn.nodups.df$text) #remove ... at end of tweets
+tweetsamzn.nodups.df <- plyr::rename(tweetsamzn.nodups.df, c("created" = "Date")) #rename created to Date 
+tweetsamzn.nodups.df$Date <- as.Date(tweetsamzn.nodups.df$Date) #convert from datetime to date format
+tweetsamzn.nodups.df
+#create text list with tweets for sentiment analysis TL
+tweets_text_tl <- lapply(tweet_list_TL, function(x) x$getText())
+tweets_text_tl <- sapply(tweets_text_tl,function(row) iconv(row, "latin1", "ASCII", sub=""))
+tweets_nodups_text_tl <- unique(tweets_text_tl)
+tweets_nodups_text_tl
+#create text list with tweets for sentiment analysis AMZN
+tweets_text_amzn <- lapply(tweet_list_AMZN, function(x) x$getText())
+tweets_text_amzn <- sapply(tweets_text_amzn,function(row) iconv(row, "latin1", "ASCII", sub=""))
+tweets_nodups_text_amzn <- unique(tweets_text_amzn)
+tweets_nodups_text_amzn
+```
+## Exploring the tweets(Create tweet corpus)
+examine a word cloud of the tweets to see the types of words that make up the returned tweets.
+```{r}
+#Create tweet corpus
+r_stats_text_corpus_ttl <- Corpus(VectorSource(tweets_nodups_text_tl))
+r_stats_text_corpus_amzn <- Corpus(VectorSource(tweets_nodups_text_amzn))
+#Clean up corpus in prepartion for word cloud
+r_stats_text_corpus_ttl <- tm_map(r_stats_text_corpus_ttl, content_transformer(tolower)) 
+r_stats_text_corpus_amzn <- tm_map(r_stats_text_corpus_amzn, content_transformer(tolower)) 
+#Transform all text to lower case
+r_stats_text_corpus_ttl <- tm_map(r_stats_text_corpus_ttl, removePunctuation)
+r_stats_text_corpus_amzn <- tm_map(r_stats_text_corpus_amzn, removePunctuation)
+#remove all punctuation 
+r_stats_text_corpus_ttl <- tm_map(r_stats_text_corpus_ttl, function(x)removeWords(x,stopwords())) 
+r_stats_text_corpus_amzn <- tm_map(r_stats_text_corpus_amzn, function(x)removeWords(x,stopwords())) 
+#remove all stop words
+#Apply sentiment to words
+#Create color word cloud 
+wordcloud(r_stats_text_corpus_ttl, min.freq = 10, max.words = 150, colors=brewer.pal(8, "Dark2"))
+wordcloud(r_stats_text_corpus_amzn, min.freq = 10, max.words = 150, colors=brewer.pal(8, "Dark2"))
+
+```
+## Sentiment Analysis
+For our sentiment analysis we will use a function created that uses a published lexicon of positive and negative words. This function will create a score for each tweet. A score of 0 indicates the tweet is neutral. A score of 1 or more indicates the tweet is positive. A score of -1 or less indicates the tweet is negative. The higher (or lower) the number indicates the relative strength of the sentiment (based on the count of words).
+
+```{r}
+score.sentiment = function(sentences, pos.words, neg.words, .progress='none')
+{
+  require(plyr)
+  require(stringr)
+  
+  # we got a vector of sentences. plyr will handle a list or a vector as an "l" for us
+  # we want a simple array of scores back, so we use "l" + "a" + "ply" = laply:
+  scores = laply(sentences, function(sentence, pos.words, neg.words) {
+    
+    # clean up sentences with R's regex-driven global substitute, gsub():
+    sentence = gsub('[[:punct:]]', '', sentence)
+    sentence = gsub('[[:cntrl:]]', '', sentence)
+    sentence = gsub('\\d+', '', sentence)
+    # and convert to lower case:
+    sentence = tolower(sentence)
+    
+    # split into words. str_split is in the stringr package
+    word.list = str_split(sentence, '\\s+')
+    # sometimes a list() is one level of hierarchy too much
+    words = unlist(word.list)
+    
+    # compare our words to the dictionaries of positive & negative terms
+    pos.matches = match(words, pos.words)
+    neg.matches = match(words, neg.words)
+  
+    # match() returns the position of the matched term or NA
+    # we just want a TRUE/FALSE:
+    pos.matches = !is.na(pos.matches)
+    neg.matches = !is.na(neg.matches)
+    
+    # and conveniently enough, TRUE/FALSE will be treated as 1/0 by sum():
+    score = sum(pos.matches) - sum(neg.matches)
+    
+    return(score)
+  }, pos.words, neg.words, .progress=.progress )
+  
+  scores.df = data.frame(score=scores, text=sentences)
+  return(scores.df)
+}
+#The positive and negative words lexicons are stored in a local director
+#Please see appendix/reference for more information on origin
+hu.liu.pos = scan('C:\\RData\\positive-words.txt', what = 'character', comment.char = ';')
+hu.liu.neg = scan('C:\\RData\\negative-words.txt', what = 'character', comment.char = ';')
+
+#Here we add some additional words that were discovered from initial review of tweets
+pos.words <- c(hu.liu.pos)
+neg.words <- c(hu.liu.neg, 'wait', 'waiting', 'hold', 'onhold' , 'on hold', 'asshole', 'cancel','spam', 'spams', 'cancel', 'wtf')
+```
+## Run the sentiment function on the text of the tweets 
+
+```{r}
+
+tesla.scores <- score.sentiment(tweets_nodups_text_tl, pos.words, neg.words, .progress='none')
+tesla.scores
+
+amazon.scores <- score.sentiment(tweets_nodups_text_amzn, pos.words, neg.words, .progress='none')
+amazon.scores
+```
+### merge the results back with the original file 
+```{r}
+tesla.scores.merge <- merge(tesla.scores, tweetstl.nodups.df, by = 'text')
+amazon.scores.merge <- merge(amazon.scores, tweetsamzn.nodups.df, by = 'text')
+```
+## Histogram of sentiment for all tweets
+```{r}
+hist(tesla.scores.merge$score,xlab=" ",main="Sentiment of tweets that mention Tesla",
+     border="black",col="skyblue")
+hist(amazon.scores.merge$score,xlab=" ",main="Sentiment of tweets that mention Amazon",
+     border="black",col="skyblue")
+```
+## Scatter plot of tweet date vs sentiment score 
+```{r}
+
+plot(tesla.scores.merge$Date, tesla.scores.merge$score, xlab = "Date", ylab = "Sentiment Score", main = "Sentiment of tweets that mention Tesla  by Date")
+
+plot(amazon.scores.merge$Date, amazon.scores.merge$score, xlab = "Date", ylab = "Sentiment Score", main = "Sentiment of tweets that mention Amazon  by Date")
+
+```
+## TESLA total evaluation: positive / negative / neutral
+
+```{r}
+
+tlstat <- tesla.scores.merge$score
+tlstat <- mutate(tesla.scores.merge, tweet=ifelse(tesla.scores.merge$score > 0, 'positive', ifelse(tesla.scores.merge$score < 0, 'negative', 'neutral')))
+tlby.tweet <- group_by(tlstat, tweet, Date)
+tlby.tweet <- dplyr::summarise(tlby.tweet, number=n())
+tlby.tweet 
+#Sentiment (positive, negative and neutral) over time
+ggplot(tlby.tweet, aes(Date, number)) + geom_line(aes(group=tweet, color=tweet), size=2) +
+  geom_point(aes(group=tweet, color=tweet), size=4) +
+  theme(text = element_text(size=18), axis.text.x = element_text(angle=90, vjust=1))
+
+
+
+
+```
+## AMAZON total evaluation: positive / negative / neutral
+```{r}
+
+amznstat <- amazon.scores.merge$score
+amznstat <- mutate(amazon.scores.merge, tweet=ifelse(amazon.scores.merge$score > 0, 'positive', ifelse(amazon.scores.merge$score < 0, 'negative', 'neutral')))
+amznby.tweet <- group_by(amznstat, tweet, Date)
+amznby.tweet <- dplyr::summarise(amznby.tweet, number=n())
+amznby.tweet 
+#Sentiment (positive, negative and neutral) over time
+ggplot(amznby.tweet, aes(Date, number)) + geom_line(aes(group=tweet, color=tweet), size=2) +
+  geom_point(aes(group=tweet, color=tweet), size=4) +
+  theme(text = element_text(size=18), axis.text.x = element_text(angle=90, vjust=1))
+```
+
+
+## Tesla Correlation with Stock Prices
+```{r}
+#Read stock price CSV in 
+stock_prices_tl <- read.csv("C:\\RData\\TSLA.csv")
+
+#Format date so R knows this is a date field
+stock_prices_tl$Date <- as.Date(stock_prices_tl$Date, "%m/%d/%y")
+
+#Left join the sentiment analysis with the stock prices 
+tweet_stock_tl <- left_join(tesla.scores.merge, stock_prices_tl, by = "Date")
+tweet_stock_tl
+tweet_stock_tl  <-  select(tweet_stock_tl, c('score', 'text'))
+tweet_stock_tl <- head(tweet_stock_tl, 10)
+tweet_stock_tl
+ g <- graph.data.frame(tweet_stock_tl) 
+ V(g)$score <- sample(1:10, vcount(g), replace=TRUE)
+
+plot(g, layout = layout.circle,vertex.label=V(g)$text, edge.arrow.size=2)
+ 
+
+
+
+```
+## Amazon Correlation with Stock Prices
+```{r}
+#Read stock price CSV in 
+stock_prices_amzn <- read.csv("C:\\RData\\AMZN.csv")
+
+#Format date so R knows this is a date field
+stock_prices_amzn$Date <- as.Date(stock_prices_amzn$Date, "%m/%d/%y")
+
+#Left join the sentiment analysis with the stock prices 
+tweet_stock_amzn <- left_join(amazon.scores.merge, stock_prices_amzn, by = "Date")
+tweet_stock_amzn
+tweet_stock_amzn  <-  select(tweet_stock_amzn, c('score', 'text'))
+tweet_stock_amzn <- head(tweet_stock_amzn, 10)
+tweet_stock_amzn
+ 
+
+
+```
+
+### Tesla Raw plot of sentiment score versus daily change in stock price
+```{r}
+
+plot(jitter(tweet_stock_tl$score), tweet_stock_tl$Daily.Change, xlab = "Sentiment Score", ylab = "Tesla Daily Change in Stock Price")
+
+```
+### Amazon Raw plot of sentiment score versus daily change in stock price
+```{r}
+
+plot(jitter(tweet_stock_amzn$score), tweet_stock_amzn$Daily.Change, xlab = "Sentiment Score", ylab = "Amazon Daily Change in Stock Price")
+
+```
+## Conclusion of Amazon and Tesla Daily Stock Price Change With Tweets
+As we observe the above Raw plots for both Amazon and Tesla, both stock prices rose on positive tweets(tweet score), but Tesla Stock price rose more on positive tweets.
+
+```{r}
+
+```
+
+## Stock Prices VS S&P Index
+```{r}
+library(quantmod)
+library(ggplot2)
+library(magrittr)
+library(broom)
+
+start = as.Date("2021-09-01") 
+end = as.Date("2021-12-06")
+
+getSymbols(c("TSLA", "AMZN", "MSFT","^GSPC"), src = "yahoo", from = start, to = end)
+
+stocks = as.xts(data.frame(A = TSLA[, "TSLA.Adjusted"], 
+B = AMZN[, "AMZN.Adjusted"], C = MSFT[, "MSFT.Adjusted"], 
+E = GSPC[,"GSPC.Adjusted"]))
+names(stocks) = c("Tesla", "Amazon", "Microsoft","S&P 500")
+index(stocks) = as.Date(index(stocks))
+
+## Plotting
+stocks_series = tidy(stocks) %>% 
+  
+  ggplot(aes(x=index,y=value, color=series)) + 
+  geom_line() +
+  facet_grid(series~.,scales = "free") + 
+  labs(title = "Top Three US Tech Comany and S&P 500: Daily Stock Prices January 2020 - January 2021 (2)",
+                                              
+                                              subtitle = "End of Day Adjusted Prices",
+                                              caption = " Source: Yahoo Finance") +
+  
+  xlab("Date") + ylab("Price") +
+  scale_color_manual(values = c("Red", "Black", "DarkBlue","Orange"))
+stocks_series
+
+
+```
+## Conclusion
+Stock prices of TESLA,MICROSOFT,AMAZON(daily/monthly) are in line(accordingly) with S&P 500 Index.
+
+
+## Interpret With Graph Database
+```{r}
+library("neo4r")
+library(magrittr)
+
+con <- neo4j_api$new(
+  url = "http://localhost:7474",
+  user = "neo4j", 
+  password = "password"
+  )
+## call_neo4j(con, type = "graph")
+
+## TESLA GRAPH DATA FRAME
+g_tl <- graph.data.frame(tweet_stock_tl) 
+ V(g_tl)$score <- sample(1:10, vcount(g_tl), replace=TRUE)
+
+plot(g_tl, layout = layout.circle,vertex.label=V(g_tl)$text, edge.arrow.size=2)
+
+## AMAZON GRAPH DATA FRAME
+g_amzn <- graph.data.frame(tweet_stock_amzn) 
+ V(g_amzn)$score <- sample(1:10, vcount(g_amzn), replace=TRUE)
+
+plot(g_amzn, layout = layout.circle,vertex.label=V(g_amzn)$text, edge.arrow.size=2)
+
+
+
+
+##query1 = "USING PERIODIC COMMIT
+##LOAD CSV WITH HEADERS FROM 'https://raw.githubusercontent.com/jayatveluri/DataAcquisition/main/TSLA.csv' AS row
+##CREATE (:Stocks {Date: row.Date, Open: row.Open, High: row.High, Low: row.Low, Close: row.Close});"
+##cypher(graphdb, query1)
+
+
+```
+
