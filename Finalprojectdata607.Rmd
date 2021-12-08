@@ -1,5 +1,5 @@
 ---
-title: "Final Project Stock Priceess - Sentiment Analysis Data 607"
+title: "Final Project Stock Prices - Sentiment Analysis Data 607"
 author: "Jaya Veluri"
 date: "12/5/2021"
 output: html_document
@@ -325,15 +325,19 @@ con <- neo4j_api$new(
 
 ## TESLA GRAPH DATA FRAME
 g_tl <- graph.data.frame(tweet_stock_tl) 
- V(g_tl)$score <- sample(1:10, vcount(g_tl), replace=TRUE)
+ V(g_tl)$score <- sample(1:5, vcount(g_tl), replace=TRUE)
 
 plot(g_tl, layout = layout.circle,vertex.label=V(g_tl)$text, edge.arrow.size=2)
+
+plot(g_tl, layout = layout.circle,vertex.label=V(g_tl)$score, edges=c(1,2, 2,3, 3,1), n=3, directed=F)
 
 ## AMAZON GRAPH DATA FRAME
 g_amzn <- graph.data.frame(tweet_stock_amzn) 
  V(g_amzn)$score <- sample(1:10, vcount(g_amzn), replace=TRUE)
 
 plot(g_amzn, layout = layout.circle,vertex.label=V(g_amzn)$text, edge.arrow.size=2)
+
+plot(g_amzn, layout = layout.circle,vertex.label=V(g_amzn)$score, edges=c(1,2, 2,3, 3,1), n=3, directed=F)
 
 
 
