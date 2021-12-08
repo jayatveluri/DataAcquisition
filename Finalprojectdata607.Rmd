@@ -1,10 +1,15 @@
 ---
-title: "Final Project Sentiment Analysis Data 607"
+title: "Final Project Stock Priceess - Sentiment Analysis Data 607"
 author: "Jaya Veluri"
 date: "12/5/2021"
 output: html_document
 ---
+```{r}
 
+```
+## INTRODUCTION/OBJECTIVE
+Analyze the daily stocks price changes(ex Tesla,Amazon) based on tweets on Twitter, extended the analysis of stock prices(Tesla,Amazon,Microsoft) with S&P 500 Index.
+Finally ported the tweets to Graph Dataframe.
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library("twitteR")
@@ -43,8 +48,7 @@ tweet_list_TL <- searchTwitter("@AskTesla OR @TeslaInc OR @elonmusk OR @Tesla OR
 tweet_list_AMZN <- searchTwitter("@AmazonStock OR @AMZN OR @jeffBezos OR @Amazon OR @AMZNStock OR @Bezos OR #AMZN OR AMZN" , n = 1000 , lang  = "en", since = "2021-09-01")
 
 
-#tweet_list
-# tweet_list_Amazon
+
 ```
 ### The returned tweets are initially stored in a list. For this project need them in a data frame and in text format.
 ```{r}
@@ -58,23 +62,23 @@ tweetsamzn.nodups.df <- distinct(tweetsamzn.df, text, .keep_all = TRUE)
 tweetstl.nodups.df$text <- gsub('…', '', tweetstl.nodups.df$text) #remove ... at end of tweets
 tweetstl.nodups.df <- plyr::rename(tweetstl.nodups.df, c("created" = "Date")) #rename created to Date 
 tweetstl.nodups.df$Date <- as.Date(tweetstl.nodups.df$Date) #convert from datetime to date format
-tweetstl.nodups.df
+head(tweetstl.nodups.df,3)
 
 #clean up dataframe a bit AMZN
 tweetsamzn.nodups.df$text <- gsub('…', '', tweetsamzn.nodups.df$text) #remove ... at end of tweets
 tweetsamzn.nodups.df <- plyr::rename(tweetsamzn.nodups.df, c("created" = "Date")) #rename created to Date 
 tweetsamzn.nodups.df$Date <- as.Date(tweetsamzn.nodups.df$Date) #convert from datetime to date format
-tweetsamzn.nodups.df
+head(tweetsamzn.nodups.df,3)
 #create text list with tweets for sentiment analysis TL
 tweets_text_tl <- lapply(tweet_list_TL, function(x) x$getText())
 tweets_text_tl <- sapply(tweets_text_tl,function(row) iconv(row, "latin1", "ASCII", sub=""))
 tweets_nodups_text_tl <- unique(tweets_text_tl)
-tweets_nodups_text_tl
+
 #create text list with tweets for sentiment analysis AMZN
 tweets_text_amzn <- lapply(tweet_list_AMZN, function(x) x$getText())
 tweets_text_amzn <- sapply(tweets_text_amzn,function(row) iconv(row, "latin1", "ASCII", sub=""))
 tweets_nodups_text_amzn <- unique(tweets_text_amzn)
-tweets_nodups_text_amzn
+
 ```
 ## Exploring the tweets(Create tweet corpus)
 examine a word cloud of the tweets to see the types of words that make up the returned tweets.
@@ -143,8 +147,8 @@ score.sentiment = function(sentences, pos.words, neg.words, .progress='none')
 }
 #The positive and negative words lexicons are stored in a local director
 #Please see appendix/reference for more information on origin
-hu.liu.pos = scan('C:\\RData\\positive-words.txt', what = 'character', comment.char = ';')
-hu.liu.neg = scan('C:\\RData\\negative-words.txt', what = 'character', comment.char = ';')
+hu.liu.pos = scan('https://raw.githubusercontent.com/jayatveluri/DataAcquisition/main/positive-words.txt', what = 'character', comment.char = ';')
+hu.liu.neg = scan('https://raw.githubusercontent.com/jayatveluri/DataAcquisition/main/negative-words.txt', what = 'character', comment.char = ';')
 
 #Here we add some additional words that were discovered from initial review of tweets
 pos.words <- c(hu.liu.pos)
@@ -155,10 +159,10 @@ neg.words <- c(hu.liu.neg, 'wait', 'waiting', 'hold', 'onhold' , 'on hold', 'ass
 ```{r}
 
 tesla.scores <- score.sentiment(tweets_nodups_text_tl, pos.words, neg.words, .progress='none')
-tesla.scores
+
 
 amazon.scores <- score.sentiment(tweets_nodups_text_amzn, pos.words, neg.words, .progress='none')
-amazon.scores
+
 ```
 ### merge the results back with the original file 
 ```{r}
@@ -216,21 +220,16 @@ ggplot(amznby.tweet, aes(Date, number)) + geom_line(aes(group=tweet, color=tweet
 ## Tesla Correlation with Stock Prices
 ```{r}
 #Read stock price CSV in 
-stock_prices_tl <- read.csv("C:\\RData\\TSLA.csv")
+stock_prices_tl <- read.csv("https://raw.githubusercontent.com/jayatveluri/DataAcquisition/main/TSLA.csv")
 
 #Format date so R knows this is a date field
 stock_prices_tl$Date <- as.Date(stock_prices_tl$Date, "%m/%d/%y")
 
 #Left join the sentiment analysis with the stock prices 
 tweet_stock_tl <- left_join(tesla.scores.merge, stock_prices_tl, by = "Date")
-tweet_stock_tl
 tweet_stock_tl  <-  select(tweet_stock_tl, c('score', 'text'))
 tweet_stock_tl <- head(tweet_stock_tl, 10)
 tweet_stock_tl
- g <- graph.data.frame(tweet_stock_tl) 
- V(g)$score <- sample(1:10, vcount(g), replace=TRUE)
-
-plot(g, layout = layout.circle,vertex.label=V(g)$text, edge.arrow.size=2)
  
 
 
@@ -239,14 +238,13 @@ plot(g, layout = layout.circle,vertex.label=V(g)$text, edge.arrow.size=2)
 ## Amazon Correlation with Stock Prices
 ```{r}
 #Read stock price CSV in 
-stock_prices_amzn <- read.csv("C:\\RData\\AMZN.csv")
+stock_prices_amzn <- read.csv("https://raw.githubusercontent.com/jayatveluri/DataAcquisition/main/AMZN.csv")
 
 #Format date so R knows this is a date field
 stock_prices_amzn$Date <- as.Date(stock_prices_amzn$Date, "%m/%d/%y")
 
 #Left join the sentiment analysis with the stock prices 
 tweet_stock_amzn <- left_join(amazon.scores.merge, stock_prices_amzn, by = "Date")
-tweet_stock_amzn
 tweet_stock_amzn  <-  select(tweet_stock_amzn, c('score', 'text'))
 tweet_stock_amzn <- head(tweet_stock_amzn, 10)
 tweet_stock_amzn
@@ -347,4 +345,16 @@ plot(g_amzn, layout = layout.circle,vertex.label=V(g_amzn)$text, edge.arrow.size
 
 
 ```
+## References:
+1)Yahoo Finance - Stock Prices
+2) http://www.cs.uic.edu/~liub/FBS/sentiment-analysis.html - positive and negative lexicons
+3)Twitter API (Using OAuth 2.0)
+
+## Future Extension:
+1)Extend the stock price analysis based on Feds report and jobs report.
+2)From the .csv files and tweets first build a relation database in neo4j and then plot the stock price changes.
+```{r}
+
+```
+
 
